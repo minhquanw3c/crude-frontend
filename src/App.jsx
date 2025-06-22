@@ -1,27 +1,19 @@
-import { Container } from "@mui/material";
 import SwapWidget from "./components/SwapWidget";
-import AppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
-import Typography from "@mui/material/Typography";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Layout from "./components/Layout";
+import SumNFunctions from "./components/SumNFunctions";
 
 function App() {
 	return (
 		<>
-			<AppBar color="primary">
-				<Toolbar>
-					<Container>
-						<Typography
-							color="white"
-							variant="h6"
-							component="div"
-							sx={{ flexGrow: 1 }}
-						>
-							CRUD Swap
-						</Typography>
-					</Container>
-				</Toolbar>
-			</AppBar>
-			<SwapWidget />
+			<BrowserRouter>
+				<Routes>
+					<Route path="/" element={<Layout />}>
+						<Route index element={<SwapWidget />} />
+						<Route path="functions" element={<SumNFunctions />} />
+					</Route>
+				</Routes>
+			</BrowserRouter>
 		</>
 	);
 }
