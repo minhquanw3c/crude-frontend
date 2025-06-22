@@ -25,10 +25,12 @@ import { useEffect, useState } from "react";
 export default function TokenSwap({
 	chains,
 	componentData,
+	label,
 	onSetComponentData,
 }: {
 	chains: Array<Chain>;
 	componentData: SwapComponent;
+	label: string;
 	onSetComponentData: React.Dispatch<React.SetStateAction<SwapComponent>>;
 }) {
 	const [openTokensDialog, setOpenTokensDialog] = useState<boolean>(
@@ -103,7 +105,7 @@ export default function TokenSwap({
 				<FormControl fullWidth variant="filled">
 					<TextField
 						variant="filled"
-						label="Input amount"
+						label={label}
 						value={inputAmout}
 						type="number"
 						onChange={(e) => {
@@ -114,8 +116,6 @@ export default function TokenSwap({
 							);
 						}}
 					/>
-					{selectedToken &&
-						`1 ${selectedToken.currency} = ${selectedToken.price} USD`}
 				</FormControl>
 
 				<Button onClick={onOpenTokensDialog}>

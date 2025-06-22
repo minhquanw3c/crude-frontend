@@ -26,8 +26,11 @@ body {
   margin: 0;
   display: flex;
   place-items: center;
+  justify-content: center;
   min-width: 320px;
   min-height: 100vh;
+  background: #EEAECA;
+  background: radial-gradient(circle, rgba(238, 174, 202, 1) 0%, rgb(148, 161, 233) 100%);
 }
 
 h1 {
