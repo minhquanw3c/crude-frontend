@@ -23,15 +23,21 @@ import ListItemButton from "@mui/material/ListItemButton";
 import { useEffect, useState } from "react";
 
 export default function TokenSwap({
+	swapType,
 	chains,
 	componentData,
 	label,
 	onSetComponentData,
+	onSetActiveInput,
 }: {
+	swapType: "sell" | "buy" | null;
 	chains: Array<Chain>;
 	componentData: SwapComponent;
 	label: string;
 	onSetComponentData: React.Dispatch<React.SetStateAction<SwapComponent>>;
+	onSetActiveInput: React.Dispatch<
+		React.SetStateAction<"sell" | "buy" | null>
+	>;
 }) {
 	const [openTokensDialog, setOpenTokensDialog] = useState<boolean>(
 		componentData.openDialog
@@ -80,6 +86,7 @@ export default function TokenSwap({
 	) => {
 		setSelectedToken(token);
 		setOpenTokensDialog(false);
+		onSetActiveInput(swapType);
 	};
 
 	useEffect(() => {
@@ -115,6 +122,7 @@ export default function TokenSwap({
 										? 0
 										: Number(e.target.value)
 								);
+								onSetActiveInput(swapType);
 							}}
 						/>
 					</FormControl>

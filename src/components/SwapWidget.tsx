@@ -24,6 +24,9 @@ export default function SwapWidget() {
 		tokensToShow: [],
 	};
 
+	const [activeInput, setActiveInput] = React.useState<"sell" | "buy" | null>(
+		null
+	);
 	const [showLoader, setShowLoader] = React.useState<boolean>(false);
 	const [errors, setErrors] = React.useState<Array<{ message: string }>>([]);
 	const [chains, setChains] = React.useState<Array<Chain>>([]);
@@ -103,6 +106,64 @@ export default function SwapWidget() {
 		}, 3000);
 	}, []);
 
+	React.useEffect(() => {
+		if (
+			activeInput !== "sell" ||
+			(activeInput === "sell" &&
+				(!sellComponent.selectedToken || !buyComponent.selectedToken))
+		)
+			return;
+
+		const sellPrice = sellComponent.selectedToken
+			? sellComponent.selectedToken.price
+			: 0;
+		const buyPrice = buyComponent.selectedToken
+			? buyComponent.selectedToken.price
+			: 0;
+
+		const sellVal = sellComponent.amount || 0;
+		const computed = (sellVal * sellPrice) / buyPrice;
+
+		console.log("Sell -> Buy: ", computed ? computed.toFixed(6) : "");
+		setSellComponent({
+			...sellComponent,
+			amount: computed ? computed : 0,
+		});
+	}, [
+		sellComponent.amount,
+		sellComponent.selectedToken,
+		buyComponent.selectedToken,
+	]);
+
+	React.useEffect(() => {
+		if (
+			activeInput !== "buy" ||
+			(activeInput === "buy" &&
+				(!sellComponent.selectedToken || !buyComponent.selectedToken))
+		)
+			return;
+
+		const sellPrice = sellComponent.selectedToken
+			? sellComponent.selectedToken.price
+			: 0;
+		const buyPrice = buyComponent.selectedToken
+			? buyComponent.selectedToken.price
+			: 0;
+
+		const sellVal = sellComponent.amount || 0;
+		const computed = (sellVal * sellPrice) / buyPrice;
+
+		console.log("Buy -> Sell: ", computed ? computed.toFixed(6) : "");
+		setBuyComponent({
+			...buyComponent,
+			amount: computed ? computed : 0,
+		});
+	}, [
+		buyComponent.amount,
+		buyComponent.selectedToken,
+		sellComponent.selectedToken,
+	]);
+
 	return (
 		<>
 			<Box
@@ -141,10 +202,12 @@ export default function SwapWidget() {
 							</Box>
 
 							<TokenSwap
+								swapType={"sell"}
 								label="Sell amount"
 								chains={chains}
 								componentData={sellComponent}
 								onSetComponentData={setSellComponent}
+								onSetActiveInput={setActiveInput}
 							/>
 
 							<Button>
@@ -152,10 +215,12 @@ export default function SwapWidget() {
 							</Button>
 
 							<TokenSwap
+								swapType={"buy"}
 								label="Buy amount"
 								chains={chains}
 								componentData={buyComponent}
 								onSetComponentData={setBuyComponent}
+								onSetActiveInput={setActiveInput}
 							/>
 
 							<Box marginTop={"1rem"}>
