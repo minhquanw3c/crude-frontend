@@ -1,7 +1,7 @@
 import * as React from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import SwapVerticalCircleOutlinedIcon from "@mui/icons-material/SwapVerticalCircleOutlined";
+import ArrowDownwardOutlinedIcon from "@mui/icons-material/ArrowDownwardOutlined";
 import Stack from "@mui/material/Stack";
 import { Alert } from "@mui/material";
 import Card from "@mui/material/Card";
@@ -28,7 +28,9 @@ export default function SwapWidget() {
 		null
 	);
 	const [showLoader, setShowLoader] = React.useState<boolean>(false);
-	const [errors, setErrors] = React.useState<Array<{ message: string }>>([]);
+	const [messages, setMessages] = React.useState<
+		Array<{ message: string; type: "success" | "error" }>
+	>([]);
 	const [chains, setChains] = React.useState<Array<Chain>>([]);
 	const [sellComponent, setSellComponent] = React.useState<SwapComponent>({
 		...initialData,
@@ -40,40 +42,60 @@ export default function SwapWidget() {
 	const onConfirmSwap = async (e: React.MouseEvent<HTMLButtonElement>) => {
 		e.preventDefault();
 
-		const errorsToShow: Array<{ message: string }> = [];
+		const errorsToShow: Array<{
+			message: string;
+			type: "success" | "error";
+		}> = [];
 
 		if (sellComponent.amount <= 0) {
 			errorsToShow.push({
 				message: "Sell amount must be greater than 0",
+				type: "error",
 			});
 		}
 
 		if (!sellComponent.selectedToken) {
 			errorsToShow.push({
 				message: "Please select token to sell",
+				type: "error",
 			});
 		}
 
 		if (buyComponent.amount <= 0) {
 			errorsToShow.push({
 				message: "Buy amount must be greater than 0",
+				type: "error",
 			});
 		}
 
 		if (!buyComponent.selectedToken) {
 			errorsToShow.push({
 				message: "Please select token to buy",
+				type: "error",
 			});
 		}
 
 		if (errorsToShow.length) {
-			setErrors(errorsToShow);
+			setMessages(errorsToShow);
 
 			setTimeout(() => {
-				setErrors([]);
+				setMessages([]);
 			}, 5000);
 			return;
 		}
+
+		setMessages([
+			{
+				message: "Transaction completed",
+				type: "success",
+			},
+		]);
+		setSellComponent({ ...sellComponent, amount: 0 });
+		setBuyComponent({ ...buyComponent, amount: 0 });
+
+		setTimeout(() => {
+			setMessages([]);
+		}, 5000);
 	};
 
 	const fetchChains = async () => {
@@ -108,60 +130,23 @@ export default function SwapWidget() {
 
 	React.useEffect(() => {
 		if (
-			activeInput !== "sell" ||
-			(activeInput === "sell" &&
-				(!sellComponent.selectedToken || !buyComponent.selectedToken))
-		)
-			return;
+			sellComponent.selectedToken &&
+			sellComponent.amount &&
+			buyComponent.selectedToken
+		) {
+			const receiveAmount =
+				(sellComponent.selectedToken.price * sellComponent.amount) /
+				buyComponent.selectedToken.price;
 
-		const sellPrice = sellComponent.selectedToken
-			? sellComponent.selectedToken.price
-			: 0;
-		const buyPrice = buyComponent.selectedToken
-			? buyComponent.selectedToken.price
-			: 0;
-
-		const sellVal = sellComponent.amount || 0;
-		const computed = (sellVal * sellPrice) / buyPrice;
-
-		console.log("Sell -> Buy: ", computed ? computed.toFixed(6) : "");
-		setSellComponent({
-			...sellComponent,
-			amount: computed ? computed : 0,
-		});
+			setBuyComponent({
+				...buyComponent,
+				amount: receiveAmount,
+			});
+		}
 	}, [
 		sellComponent.amount,
 		sellComponent.selectedToken,
 		buyComponent.selectedToken,
-	]);
-
-	React.useEffect(() => {
-		if (
-			activeInput !== "buy" ||
-			(activeInput === "buy" &&
-				(!sellComponent.selectedToken || !buyComponent.selectedToken))
-		)
-			return;
-
-		const sellPrice = sellComponent.selectedToken
-			? sellComponent.selectedToken.price
-			: 0;
-		const buyPrice = buyComponent.selectedToken
-			? buyComponent.selectedToken.price
-			: 0;
-
-		const sellVal = sellComponent.amount || 0;
-		const computed = (sellVal * sellPrice) / buyPrice;
-
-		console.log("Buy -> Sell: ", computed ? computed.toFixed(6) : "");
-		setBuyComponent({
-			...buyComponent,
-			amount: computed ? computed : 0,
-		});
-	}, [
-		buyComponent.amount,
-		buyComponent.selectedToken,
-		sellComponent.selectedToken,
 	]);
 
 	return (
@@ -172,10 +157,7 @@ export default function SwapWidget() {
 				flexDirection={"column"}
 				gap={"0.5rem"}
 			>
-				<Alert severity="warning">
-					Note that we haven't added implementation logic for making
-					sure swapping on same chain.
-				</Alert>
+				<Alert severity="info">Welcome to CRUD Swap</Alert>
 
 				<Card raised>
 					<CardContent>
@@ -185,15 +167,15 @@ export default function SwapWidget() {
 							flexDirection={"column"}
 						>
 							<Box marginBottom={"1rem"}>
-								{errors.length ? (
+								{messages.length ? (
 									<Stack>
-										{errors.map((error, index) => {
+										{messages.map((message, index) => {
 											return (
 												<Alert
-													severity="error"
+													severity={message.type}
 													key={index}
 												>
-													{error.message}
+													{message.message}
 												</Alert>
 											);
 										})}
@@ -202,8 +184,9 @@ export default function SwapWidget() {
 							</Box>
 
 							<TokenSwap
+								isReadOnly={false}
 								swapType={"sell"}
-								label="Sell amount"
+								label="Input amount"
 								chains={chains}
 								componentData={sellComponent}
 								onSetComponentData={setSellComponent}
@@ -211,12 +194,13 @@ export default function SwapWidget() {
 							/>
 
 							<Button>
-								<SwapVerticalCircleOutlinedIcon fontSize="large" />
+								<ArrowDownwardOutlinedIcon fontSize="large" />
 							</Button>
 
 							<TokenSwap
+								isReadOnly={true}
 								swapType={"buy"}
-								label="Buy amount"
+								label="Receive amount"
 								chains={chains}
 								componentData={buyComponent}
 								onSetComponentData={setBuyComponent}

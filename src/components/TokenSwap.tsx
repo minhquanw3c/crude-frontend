@@ -23,6 +23,7 @@ import ListItemButton from "@mui/material/ListItemButton";
 import { useEffect, useState } from "react";
 
 export default function TokenSwap({
+	isReadOnly,
 	swapType,
 	chains,
 	componentData,
@@ -30,6 +31,7 @@ export default function TokenSwap({
 	onSetComponentData,
 	onSetActiveInput,
 }: {
+	isReadOnly: boolean;
 	swapType: "sell" | "buy" | null;
 	chains: Array<Chain>;
 	componentData: SwapComponent;
@@ -39,23 +41,12 @@ export default function TokenSwap({
 		React.SetStateAction<"sell" | "buy" | null>
 	>;
 }) {
-	const [openTokensDialog, setOpenTokensDialog] = useState<boolean>(
-		componentData.openDialog
-	);
-	const [selectedChainId, setSelectedChainId] = useState<string>(
-		componentData.selectedChainId
-	);
-	const [selectedToken, setSelectedToken] = useState<Token | null>(
-		componentData.selectedToken
-	);
-	const [selectedChainTokens, setSelectedChainTokens] = useState<
-		Array<Token>
-	>(componentData.tokensToShow);
-	const [inputAmout, setInputAmount] = useState<number>(componentData.amount);
-
 	const onOpenTokensDialog = () => {
-		setOpenTokensDialog(true);
-		setSelectedChainTokens([]);
+		onSetComponentData({
+			...componentData,
+			openDialog: true,
+			tokensToShow: [],
+		});
 	};
 
 	const onCloseTokensDialog = (
@@ -63,48 +54,39 @@ export default function TokenSwap({
 		reason?: string
 	) => {
 		if (reason !== "backdropClick") {
-			setOpenTokensDialog(false);
+			onSetComponentData({
+				...componentData,
+				openDialog: false,
+			});
 		}
 	};
 
 	const onSelectChain = (event: SelectChangeEvent) => {
 		const chainId = event.target.value.toString();
-		setSelectedChainId(chainId);
 
 		const chainToFilter = chains.find(
 			(chain) => chain.chainId.toString() === chainId
 		);
 
-		if (chainToFilter) {
-			setSelectedChainTokens([...chainToFilter.tokens]);
-		}
+		onSetComponentData({
+			...componentData,
+			selectedChainId: chainId,
+			tokensToShow: [...chainToFilter!.tokens],
+		});
 	};
 
 	const onSelectChainToken = (
 		event: React.MouseEvent<HTMLDivElement>,
 		token: Token
 	) => {
-		setSelectedToken(token);
-		setOpenTokensDialog(false);
 		onSetActiveInput(swapType);
-	};
 
-	useEffect(() => {
 		onSetComponentData({
 			...componentData,
-			openDialog: openTokensDialog,
-			selectedChainId,
-			selectedToken,
-			tokensToShow: selectedChainTokens,
-			amount: inputAmout,
+			selectedToken: token,
+			openDialog: false,
 		});
-	}, [
-		openTokensDialog,
-		selectedChainId,
-		selectedChainTokens,
-		selectedToken,
-		inputAmout,
-	]);
+	};
 
 	return (
 		<>
@@ -112,16 +94,19 @@ export default function TokenSwap({
 				<Box minWidth={"250px"}>
 					<FormControl fullWidth variant="filled">
 						<TextField
+							slotProps={{ input: { readOnly: isReadOnly } }}
 							variant="filled"
 							label={label}
-							value={inputAmout}
+							value={componentData.amount}
 							type="number"
 							onChange={(e) => {
-								setInputAmount(
-									Number(e.target.value) < 0
-										? 0
-										: Number(e.target.value)
-								);
+								onSetComponentData({
+									...componentData,
+									amount:
+										Number(e.target.value) < 0
+											? 0
+											: Number(e.target.value),
+								});
 								onSetActiveInput(swapType);
 							}}
 						/>
@@ -142,7 +127,7 @@ export default function TokenSwap({
 				fullWidth
 				maxWidth="xs"
 				disableEscapeKeyDown
-				open={openTokensDialog}
+				open={componentData.openDialog}
 				onClose={onCloseTokensDialog}
 			>
 				<DialogTitle>Select a token</DialogTitle>
@@ -157,7 +142,7 @@ export default function TokenSwap({
 								id="input-chains-select"
 								label="Available chains"
 								onChange={onSelectChain}
-								value={selectedChainId}
+								value={componentData.selectedChainId}
 							>
 								{chains.map((chain) => {
 									return (
@@ -176,9 +161,9 @@ export default function TokenSwap({
 							</Select>
 						</FormControl>
 
-						{selectedChainTokens.length ? (
+						{componentData.tokensToShow.length ? (
 							<List>
-								{selectedChainTokens.map((token) => {
+								{componentData.tokensToShow.map((token) => {
 									return (
 										<ListItemButton
 											key={token.id}
