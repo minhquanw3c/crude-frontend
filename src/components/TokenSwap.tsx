@@ -1,5 +1,5 @@
-import { Chain } from "../types/Chain";
-import { SwapComponent, Token } from "../types/Token";
+import { SwapComponent } from "../types/shared";
+import { Chain, Token } from "../types/shared";
 
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -101,22 +101,24 @@ export default function TokenSwap({
 
 	return (
 		<>
-			<Box display={"flex"} minWidth={"300px"}>
-				<FormControl fullWidth variant="filled">
-					<TextField
-						variant="filled"
-						label={label}
-						value={inputAmout}
-						type="number"
-						onChange={(e) => {
-							setInputAmount(
-								Number(e.target.value) < 0
-									? 0
-									: Number(e.target.value)
-							);
-						}}
-					/>
-				</FormControl>
+			<Box display={"flex"} gap={"1rem"}>
+				<Box minWidth={"250px"}>
+					<FormControl fullWidth variant="filled">
+						<TextField
+							variant="filled"
+							label={label}
+							value={inputAmout}
+							type="number"
+							onChange={(e) => {
+								setInputAmount(
+									Number(e.target.value) < 0
+										? 0
+										: Number(e.target.value)
+								);
+							}}
+						/>
+					</FormControl>
+				</Box>
 
 				<Button onClick={onOpenTokensDialog}>
 					{componentData.selectedToken ? (
@@ -152,8 +154,14 @@ export default function TokenSwap({
 								{chains.map((chain) => {
 									return (
 										<MenuItem value={chain.chainId}>
-											<Avatar src={chain.imageUrl} />
-											{chain.name}
+											<Box
+												display={"flex"}
+												gap={"0.5rem"}
+												alignItems={"center"}
+											>
+												<Avatar src={chain.imageUrl} />
+												{chain.name}
+											</Box>
 										</MenuItem>
 									);
 								})}

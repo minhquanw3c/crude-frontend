@@ -1,4 +1,10 @@
-import { Chain } from "./Chain";
+export type Chain = {
+	id: number;
+	chainId: number;
+	name: string;
+	imageUrl: string;
+	tokens: Array<Token>;
+};
 
 export type Token = {
 	id: number;

@@ -6,10 +6,11 @@ import Stack from "@mui/material/Stack";
 import { Alert } from "@mui/material";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
-import CardActionArea from "@mui/material/CardActionArea";
+import Backdrop from "@mui/material/Backdrop";
+import CircularProgress from "@mui/material/CircularProgress";
 
-import { SwapComponent, Token } from "../types/Token";
-import { Chain } from "../types/Chain";
+import { SwapComponent } from "../types/shared";
+import { Chain, Token } from "../types/shared";
 import axios from "axios";
 import TokenSwap from "./TokenSwap";
 
@@ -23,6 +24,7 @@ export default function SwapWidget() {
 		tokensToShow: [],
 	};
 
+	const [showLoader, setShowLoader] = React.useState<boolean>(false);
 	const [errors, setErrors] = React.useState<Array<{ message: string }>>([]);
 	const [chains, setChains] = React.useState<Array<Chain>>([]);
 	const [sellComponent, setSellComponent] = React.useState<SwapComponent>({
@@ -67,6 +69,7 @@ export default function SwapWidget() {
 			setTimeout(() => {
 				setErrors([]);
 			}, 5000);
+			return;
 		}
 	};
 
@@ -92,68 +95,97 @@ export default function SwapWidget() {
 	};
 
 	React.useEffect(() => {
-		fetchChains();
+		setShowLoader(true);
+
+		setTimeout(() => {
+			fetchChains();
+			setShowLoader(false);
+		}, 3000);
 	}, []);
 
 	return (
 		<>
-			<Card raised>
-				<CardContent>
-					<Box
-						display={"flex"}
-						justifyContent={"center"}
-						flexDirection={"column"}
-					>
-						<Box marginBottom={"1rem"}>
-							{errors.length ? (
-								<Stack>
-									{errors.map((error, index) => {
-										return (
-											<Alert severity="error" key={index}>
-												{error.message}
-											</Alert>
-										);
-									})}
-								</Stack>
-							) : null}
-						</Box>
+			<Box
+				maxWidth={"380px"}
+				display={"flex"}
+				flexDirection={"column"}
+				gap={"0.5rem"}
+			>
+				<Alert severity="warning">
+					Note that we haven't added implementation logic for making
+					sure swapping on same chain.
+				</Alert>
 
-						<TokenSwap
-							label="Sell amount"
-							chains={chains}
-							componentData={sellComponent}
-							onSetComponentData={setSellComponent}
-						/>
+				<Card raised>
+					<CardContent>
+						<Box
+							display={"flex"}
+							justifyContent={"center"}
+							flexDirection={"column"}
+						>
+							<Box marginBottom={"1rem"}>
+								{errors.length ? (
+									<Stack>
+										{errors.map((error, index) => {
+											return (
+												<Alert
+													severity="error"
+													key={index}
+												>
+													{error.message}
+												</Alert>
+											);
+										})}
+									</Stack>
+								) : null}
+							</Box>
 
-						<Button>
-							<SwapVerticalCircleOutlinedIcon fontSize="large" />
-						</Button>
+							<TokenSwap
+								label="Sell amount"
+								chains={chains}
+								componentData={sellComponent}
+								onSetComponentData={setSellComponent}
+							/>
 
-						<TokenSwap
-							label="Buy amount"
-							chains={chains}
-							componentData={buyComponent}
-							onSetComponentData={setBuyComponent}
-						/>
-
-						<Box marginTop={"1rem"}>
-							{buyComponent.selectedToken &&
-								sellComponent.selectedToken &&
-								`1 ${buyComponent.selectedToken.currency} = ${sellComponent.selectedToken.currency}`}
-						</Box>
-
-						<Box marginTop={"1rem"}>
-							<Button
-								variant="contained"
-								onClick={onConfirmSwap}
-								fullWidth
-							>
-								Confirm swap
+							<Button>
+								<SwapVerticalCircleOutlinedIcon fontSize="large" />
 							</Button>
+
+							<TokenSwap
+								label="Buy amount"
+								chains={chains}
+								componentData={buyComponent}
+								onSetComponentData={setBuyComponent}
+							/>
+
+							<Box marginTop={"1rem"}>
+								{buyComponent.selectedToken &&
+									sellComponent.selectedToken &&
+									`1 ${
+										buyComponent.selectedToken.currency
+									} = ${
+										buyComponent.selectedToken.price /
+										sellComponent.selectedToken.price
+									} ${sellComponent.selectedToken.currency}`}
+							</Box>
+
+							<Box marginTop={"1rem"}>
+								<Button
+									variant="contained"
+									onClick={onConfirmSwap}
+									fullWidth
+								>
+									Confirm swap
+								</Button>
+							</Box>
 						</Box>
-					</Box>
-				</CardContent>
-			</Card>
+					</CardContent>
+				</Card>
+			</Box>
+
+			<Backdrop open={showLoader}>
+				<CircularProgress color="warning" size={"3rem"} />
+			</Backdrop>
 		</>
 	);
 }
