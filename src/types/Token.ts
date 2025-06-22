@@ -9,3 +9,12 @@ export type Token = {
 	imageUrl: string;
 	chains: Array<Chain>;
 };
+
+export type SwapComponent = {
+	amount: number;
+	selectedToken: Token | null;
+	selectedChainId: string;
+	openDialog: boolean;
+	chainsToSelect: Array<Chain>;
+	tokensToShow: Array<Token>;
+};
